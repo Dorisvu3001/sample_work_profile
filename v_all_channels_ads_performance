@@ -1,0 +1,234 @@
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE view [cus].[v_Ads_Performance]
+AS
+SELECT 
+	[Tên Chiến Dịch] as Ads_name 
+	,[ID Sản Phẩm Tài Trợ] as Product_ID 
+	,[Sản Phẩm Tài Trợ] as [Item Name]
+	,N'Tự Động' as Ads_Type
+	,null as Placement
+	,N'Ads' as Ads_Category
+	,[Số lượt hiển thị] as [Impression]
+	,[Lượt Click] as Clicks
+	,[Tỷ lệ click (CTR)] as CTR
+	,[Số Đơn Hàng] as Conversions
+	,[Tỷ Lệ Chuyển Đổi (CVR)] as [Conversion Rate]
+	,[Chi phí trên mỗi lượt click (CPC)] as [Cost per Conversion]
+	,[Số Sản Phẩm Đã Bán] [Items Sold]
+	,[Doanh Thu] as GMV
+	,[Chi Phí] as Expense
+	--,[Tỷ suất lợi nhuận (ROI)] as ROAS
+	, [Ngày]  as [Date]
+	,N'Lazada' as Channel
+	,'' as [Cài đặt Đối tượng]
+	,'' as [Nội dung quảng cáo]
+	,'' as [Phương thức đấu thầu]
+	,[FileName]
+FROM [dbo].[Lazada_ADS_Performance]
+
+UNION ALL
+
+SELECT 
+	NULL as Ads_name 
+	,[Item Id] as Product_ID 
+	,[Product Name] as [Item Name]
+	,'Affiliate' as Ads_Type
+	,NULL as Placement
+	,N'Affiliate' as Ads_Category
+	,NULL as [Impression]
+	,NULL as Clicks
+	,NULL as CTR
+	,[Orders] as Conversions
+	,NULL as [Conversion Rate]
+	,NULL as [Cost per Conversion]
+	,[Units Sold] [Items Sold]
+	,[Revenue] as GMV
+	,[Est# Spend] as Expense
+	--,null  as ROAS
+	, [Date]  as [Date]
+	,N'Lazada' as Channel
+	,NULL as 'Brand'
+	, '' as 'Detail Brand' 
+	,'' as [Cài đặt Đối tượng]
+	,'' as [Nội dung quảng cáo]
+	,'' as [Phương thức đấu thầu]
+	,[FileName]
+FROM [dbo].[Lazada_ADS_Affiliate]
+    
+UNION ALL 
+
+	SELECT 
+		[Product Name/Ad Name] as Ads_name
+		,[Product ID] as Product_ID 
+		,[Product Name/Ad Name] as [Item Name]
+		,[Ads Type] as Ads_Type
+		,[Placement/Keyword] as Placement
+		,N'Ads' as Ads_Category
+		,[Impression] as [Impression]
+		,[Clicks] as [Clicks]
+		,[CTR] as [CTR]
+		,[Conversions] as [Conversions]
+		,[Conversion Rate] as [Conversion Rate] 
+		,[Cost per Conversion] as [Cost per Conversion]
+		,[Items Sold] as [Items Sold]
+		,[GMV] as [GMV]
+		,[Expense] as [Expense]
+		--,[ROAS] as [ROAS]
+		,Convert(date, Replace(dbo.GetFileNameWithoutExtensionCharacter([FileName],10),'_','-' ) ,103) as [Date]
+		,N'Shopee' as Channel
+		,'' as [Cài đặt Đối tượng]
+		,'' as [Nội dung quảng cáo]
+		,'' as [Phương thức đấu thầu]
+		,[FileName]
+	FROM [dbo].[Shopee_ADS_Performance]-- where [Status] ='Ongoing'
+  
+UNION ALL
+  
+	SELECT 
+		null as Ads_name 
+		,[Item id] as Product_ID 
+		,[Item Name] as [Item Name]
+		,'Affiliate' as Ads_Type
+		,null as Placement
+		,N'Affiliate' as Ads_Category
+		,null as [Impression]
+		,null as Clicks
+		,null as CTR
+		,Orders as Conversions
+		,null as [Conversion Rate]
+		,null as [Cost per Conversion]
+		,[Item Sold] [Items Sold]
+		--,[GMV(₫)] as GMV
+		,isnull([GMV(₫)] ,[Sales(₫)]) as GMV
+		,[Est.Commission(₫)] as Expense
+		--,null  as ROAS
+		,Convert(date,dbo.GetFileNameWithoutExtensionCharacter([FileName],8) ,103) as [Date]
+		--,dbo.GetFileNameWithoutExtensionCharacter([FileName],8)
+		,N'Shopee' as Channel
+		,null as 'Brand'
+		, '' as 'Detail Brand'
+		,'' as [Cài đặt Đối tượng]
+		,'' as [Nội dung quảng cáo]
+		,'' as [Phương thức đấu thầu]
+		,[FileName]
+	FROM [dbo].[Shopee_ADS_Affiliate]
+
+UNION ALL
+
+	SELECT 
+		[Tên quảng cáo] as Ads_name
+		,[Mã sản phẩm] as Product_ID 
+		,[Tên quảng cáo] as [Item Name]
+		,[Loại quảng cáo] as Ads_Type
+		,[Vị trí] as Placement
+		,N'Ads' as Ads_Category
+		,[Số lượt xem] as [Impression]
+		,[Số lượt click] as [Clicks]
+		,[Tỷ Lệ Click] as [CTR]
+		,[Lượt chuyển đổi] as [Conversions]
+		,[Tỷ lệ chuyển đổi] as [Conversion Rate] 
+		,[Chi phí cho mỗi lượt chuyển đổi] as [Cost per Conversion]
+		,[Sản phẩm đã bán] as [Items Sold]
+		,[GMV] as [GMV]
+		,[Chi phí] as [Expense]
+		--,[ROAS] as [ROAS]
+		,Convert(date, Replace(dbo.GetFileNameWithoutExtensionCharacter([FileName],10),'_','-' ) ,103) as [Date]
+		,N'Shopee' as Channel
+		, [Cài đặt Đối tượng]
+		, [Nội dung quảng cáo]
+		,[Phương thức đấu thầu]
+		,[FileName]
+	FROM [dbo].[Shopee_ADS_Performance_VN]
+
+UNION ALL
+
+	SELECT 
+		[Tên chiến dịch] as Ads_name 
+		,[SKU] as Product_ID 
+		,[Tên sản phầm] as [Item Name]
+		,[Loại quảng cáo] as Ads_Type
+		, null as Placement
+		,N'Ads' as Ads_Category
+		,[Lượt hiển thị] as [Impression]
+		,[Click] as Clicks
+		,[CTR %] as CTR
+		,null as Conversions
+		,[CR %] as [Conversion Rate]
+		,[CPC (vnd)] as [Cost per Conversion]
+		,[Số sản phẩm đã bán] [Items Sold]
+		,[Doanh thu bán (GMV)] as GMV
+		,[Chí phí quảng cáo] as Expense
+		--,null as ROAS
+		, [Thời gian]  as [Date]
+		,N'Tiki' as Channel
+		,'' as [Cài đặt Đối tượng]
+		,'' as [Nội dung quảng cáo]
+		,'' as [Phương thức đấu thầu]
+		,[FileName]
+	FROM [dbo].[Tiki_ADS_Performance]
+
+UNION ALL 
+	
+		SELECT 
+		[Campaign name] as Ads_name
+		,[Product ID] as Product_ID 
+		,[Product name] as [Item Name]
+		,'' as Ads_Type
+		,'' as Placement
+		,N'Ads' as Ads_Category
+		,Impression as [Impression]
+		,[Clicks] as [Clicks]
+		,null as [CTR]
+		,null  as [Conversions]
+		,null as [Conversion Rate] 
+		,null as [Cost per Conversion]
+		,Items_sold_dat as [Items Sold]
+		,GMV_dat as [GMV]
+		,[Expense] as [Expense]
+		--,[ROAS] as [ROAS]
+		,theDate as [Date]
+		,N'Tiktok' as Channel
+		,'' as 'Brand'
+		, '' as 'Detail Brand'
+		,'' as [Cài đặt Đối tượng]
+		,'' as [Nội dung quảng cáo]
+		,'' as [Phương thức đấu thầu]
+		,'' as [FileName]
+	FROM cus.v_Tiktok_ADS_Performance
+
+UNION ALL 
+	
+	SELECT 
+		null as Ads_name 
+		,[Product ID] as Product_ID 
+		,[Product Name] as [Item Name]
+		,'Affiliate' as Ads_Type
+		,null as Placement
+		,N'Affiliate' as Ads_Category
+		,null as [Impression]
+		,null as Clicks
+		,null as CTR
+		,null as Conversions
+		,null as [Conversion Rate]
+		,null as [Cost per Conversion]
+		,Quantity as [Items Sold]
+		,cast([Est# Commission Base] as float)  as GMV
+		,cast([Est# standard commission payment] as float) as Expense
+		,convert(date,[Time Created] ) as [Date]
+		,N'Tiktok' as Channel
+		,'' as 'Brand'
+		, '' as 'Detail Brand'
+		,'' as [Cài đặt Đối tượng]
+		,'' as [Nội dung quảng cáo]
+		,'' as [Phương thức đấu thầu]
+		,[FileName]
+	FROM [dbo].[v_Tiktok_ADS_Affiliate]
+
+
+GO
