@@ -1,0 +1,479 @@
+CREATE view [cus].[v_total_data] as
+With ad as (
+select
+	Channel as Platform,
+	'Paid' as Paid_Total,
+	Date,
+	Product_ID,
+	[Item Name],
+	GMV,
+	Expense,
+	Conversions as Orders,
+	[Items Sold],
+	Ads_name,
+	Ads_Type as Ads_type,
+	Ads_Category as Ads_category,
+	Clicks,
+	Impression,
+	NULL as Status,
+	NULL as Order_ID,
+	NULL as [Reach],
+	NULL as [Campaign name] ,
+	NULL as [Campaign Budget],
+	NULL as [Campaign Budget Type],
+	NULL as [Starts],
+	NULL as [Ends],
+	NULL as [Reporting starts],
+	NULL as [Reporting ends],
+	NULL as Add_to_cart,
+	NULL as [Livestream name],
+	NULL as [conversion ID],
+	[Placement]
+from db.cus.v_Ads_Performance
+UNION ALL 
+select
+	'Shopee' as Platform,
+	'Paid' as Paid_Total,
+	Convert(date, [Thời gian mua]) as Date, 
+	--[Mã sản phẩm] as Product_ID,
+	CASE 
+        WHEN CHARINDEX('-', [Mã sản phẩm]) > 0 
+            THEN LEFT([Mã sản phẩm], CHARINDEX('-', [Mã sản phẩm]) - 1)
+        ELSE [Mã sản phẩm]
+    END AS Product_ID,
+	[Sản phẩm] as Item_name,
+	[Giá sản phẩm] as GMV,
+	[Hoa hồng] as Expense,
+	NULL as Orders,
+	NULL as [Items Sold],
+	NULL as Ads_name,
+	NULL as Ads_type,
+	'Affiliate MasOffer' as Ads_category,
+	NULL as Clicks,
+	NULL as Impression,
+	--[Trạng thái] as Status,
+	NULL as Status,
+	[Mã đơn hàng] as Order_ID,
+	NULL as [Reach],
+	NULL as [Campaign name] ,
+	NULL as [Campaign Budget],
+	NULL as [Campaign Budget Type],
+	NULL as [Starts],
+	NULL as [Ends],
+	NULL as [Reporting starts],
+	NULL as [Reporting ends],
+	NULL as Add_to_cart,
+	NULl as [Livestream name],
+	[conversion ID],
+	NULL as Placement
+from db.dbo.v_Shopee_affiliate_masoffer
+UNION ALL
+select
+	'Shopee' as Platform,
+	'Paid' as Paid_Total,
+	[Reporting starts] as Date,
+	NULL as [Product_ID],
+	NULL as [Item Name],
+	[Mobile app purchases conversion value for shared items only] as GMV,
+	[Amount spent (VND)] as Expense,
+	[Mobile app purchases with shared items] as Orders,
+	NULL as [Items Sold],
+	NULL as Ads_name,
+	[Objective] as Ads_type,
+	'Facebook Ads' as Ads_category,
+	[Link clicks] as Clicks,
+	[Impressions]as Impression,
+	NULL as Status,
+	NULL as Order_ID,	
+	[Reach],
+	[Campaign name] ,
+	[Campaign Budget],
+	[Campaign Budget Type],
+	[Starts],
+	[Ends],
+	[Reporting starts],
+	[Reporting ends],
+	[Mobile app adds to cart with shared items] as Add_to_cart,
+	NULL as [Livestream name],
+	NULL as [conversion ID],
+	NULL as Placement
+from db.cus.vv_Shopee_facebook_ads 
+UNION ALL 
+select
+	'ShopeeLive' as [Platform],
+	'Paid' as Paid_Total,
+	[Date],
+	[Item ID] as Product_ID,
+	[Product Information] as [Item Name],
+	[Sales(Confirmed Orders)] as GMV,
+	NULL as Expense,
+	[Orders (Confirmed Orders)] as Orders,
+	NULL as [Items Sold],
+	NULL as Ads_name,
+	NULL as Ads_type,
+	'ShopeeLive' as Ads_category,
+	[Clicks] as Clicks,
+	NULL as Impression,
+	NULL as Status,
+	NULL as Order_ID,	
+	NULL as [Reach],
+	NULL as [Campaign name] ,
+	NULL as [Campaign Budget],
+	NULL as [Campaign Budget Type],
+	NULL as [Starts],
+	NULL as [Ends],
+	NULL as [Reporting starts],
+	NULL as [Reporting ends],
+	[Units (Add to Cart)] as Add_to_cart,
+	[Livestream name],
+	NULL as [conversion ID],
+	NULL as Placement
+from db.dbo.v_Shopee_livestream
+UNION ALL
+select
+	'Shopee' as Platform,
+	'Paid' as Paid_Total,
+	Date, 
+	NULL as Product_ID,
+	NULL as Item_name,
+	GMV,
+	Expense,
+	Orders,
+	NULL as [Items Sold],
+	NULL as Ads_name,
+	'LiveAds' as Ads_type,
+	'Ads' as Ads_category,
+	NULL as Clicks,
+	[Views] as Impression,
+	--[Status] as Status,
+	NULL as Status,
+	NULL as Order_ID,
+	NULL as [Reach],
+	[Campaign Name] as [Campaign name] ,
+	[Budget] as [Campaign Budget],
+	NULL as [Campaign Budget Type],
+	[Start Date] as [Starts],
+	[End Date] as [Ends], --không cần đổi lại date format dạng yyyy-MM-dd do đang ở dạng string (có TH: "Unlimited")
+	NULL as [Reporting starts],
+	NULL as [Reporting ends],
+	NULL as Add_to_cart,
+	[Campaign Name] as [Livestream name],
+	NULL as [conversion ID],
+	NULL as Placement
+from db.[cus].[v_Shopee_ADS_LiveAds]
+)
+--,TTS_ads_affiliate as (
+--	SELECT	
+--		'Tiktok' as Platform,
+--		'Paid' as Paid_Total,
+--		convert(date,[Time Created] ) as Date, 
+--		[Seller Sku] as Product_ID,
+--		[Product Name] as Item_name,
+--		cast([Est# Commission Base] as float) as GMV,
+--		cast([Est# standard commission payment] as float) as Expense,
+--		null as Orders,
+--		Quantity as [Items Sold],
+--		NULL as Ads_name,
+--		'Affiliate' as Ads_type,
+--		'Affiliate' as Ads_category,
+--		NULL as Clicks,
+--		NULL as Impression,
+--		--[Status] as Status,
+--		[Order Status] as Status, --Status của Order (có thể dựa vào đây để check đơn Completed chưa)
+--		[Order ID] as Order_ID,
+--		NULL as [Reach],
+--		NULL as [Campaign name] ,
+--		NULL as [Campaign Budget],
+--		NULL as [Campaign Budget Type],
+--		NULL as [Starts],
+--		NULL as [Ends], --không cần đổi lại date format dạng yyyy-MM-dd do đang ở dạng string (có TH: "Unlimited")
+--		NULL as [Reporting starts],
+--		NULL as [Reporting ends],
+--		NULL as Add_to_cart,
+--		NULL as [Livestream name],
+--		NULL as [conversion ID],
+--		NULL as Placement
+--	from db.[dbo].[v_Tiktok_ADS_Affiliate]
+	--)
+, ads as (
+	select
+	ad.*,
+	sku.[Standard name],
+	sku.Category as [Brand Category],
+	sku.[Brand Name],
+	--sku.[Brand Name Lv2],
+	sku.[Size],
+	sku.[Volume],
+	sku.[Product Weight/g] as [Weight]
+	from ad 
+	left join [cus].[v_Master_SKU_Ads] sku on ad. Product_ID = sku. Product_ID
+	--UNION ALL
+	--select
+	--TTS_ads_affiliate.*,
+	--sku.[Standard name],
+	--sku.Category as [Brand Category],
+	--sku.[Brand Name],
+	----sku.[Brand Name Lv2],
+	--sku.[Size],
+	--sku.[Volume],
+	--sku.[Product Weight/g] as [Weight]
+	--from TTS_ads_affiliate
+	--left join [cus].v_Master_SKU_Order_new sku on TTS_ads_affiliate.Product_ID COLLATE Latin1_General_100_CI_AS_WS_SC_UTF8 = sku.[Product SKU]
+	)
+, ord1 as (
+		select
+		ord.*,
+		sku.[Standard name],
+		sku.Category as [Brand Category],
+		sku.[Brand Name],
+		--sku.[Brand Name Lv2],
+		sku.Size,
+		sku.[Volume],
+		sku.[Product Weight/g] as [Weight]
+		from v_order_ec_new ord
+		--left join [cus].[v_Master_SKU_Order] sku on ord.Product_SKU = sku.[Product SKU]
+		left join [cus].v_Master_SKU_Order_new sku on ord.Product_SKU COLLATE Latin1_General_100_CI_AS_WS_SC_UTF8 = sku.[Product SKU] ----Combine giữa template SKU cũ và mới
+	)
+, ord_ad as (
+	select
+		[Platform],
+		Paid_Total,
+		[Date],
+		Product_ID,
+		[Item Name],
+		GMV,
+		Expense,
+		Orders,
+		[Items Sold],
+		Ads_name,
+		Ads_type,
+		Ads_category,
+		Clicks,
+		Impression,
+		'' as Status,
+		Order_ID,	
+		[Reach],
+		[Campaign name] ,
+		[Campaign Budget],
+		[Campaign Budget Type],
+		[Starts],
+		[Ends],
+		[Reporting starts],
+		[Reporting ends],
+		Add_to_cart,
+		[Livestream name],
+		[Standard name],
+		[Brand Category],
+		[Brand Name],
+		--[Brand Name Lv2],
+		Size,
+		NULL as Buyer_ID,
+		NULL as Customer_name,
+		NULL as Original_price,
+		NULL as Voucher_code,
+		NULL as Voucher_status,
+		NULL as Brand_voucher,
+		NULL as Brand_discount,
+		NULL as Platform_voucher,
+		NULL as Region,
+		NULL as [Estimated Platform Sponsors Shipping fee],
+		NULL as [Estimated Shipping Fee],
+		NULL as [Shipping Fee Buyer Pay],
+		NULL as Pageviews,
+		NULL as Visitor,
+		NULL as Buyer,
+		[conversion ID],
+		[Placement],
+		NULL as [Brand_freeship_Xtra_voucher],
+		Volume,
+		Weight,
+		NULL as promotion_id_order,
+		NULL as [Estimated Platform Sponsors Shipping fee (new)],
+		NULL as Visitor_sales,
+		'Ads' as 'source_data'
+		from ads
+	UNION ALL 
+		select
+		[Platform],
+		[Paid_Total],
+		Convert (date, [Date]) as Date,
+		Product_SKU as Product_ID,
+		Item_name as [Item Name],
+		GMV,
+		NULL as Expense,
+		Orders,
+		Quantity as [Items Sold],
+		NULL as Ads_name,
+		NULL as Ads_type,
+		NULL as Ads_category,
+		NULL as Clicks,
+		NULL as Impression,
+		Status,
+		Order_ID,	
+		NULL as [Reach],
+		NULL as [Campaign name] ,
+		NULL as [Campaign Budget],
+		NULL as [Campaign Budget Type],
+		NULL as [Starts],
+		NULL as [Ends],
+		NULL as [Reporting starts],
+		NULL as [Reporting ends],
+		NULL as Add_to_cart,
+		NULL as [Livestream name],
+		[Standard name] COLLATE Latin1_General_100_CI_AS_WS_SC_UTF8,
+		[Brand Category] COLLATE Latin1_General_100_CI_AS_WS_SC_UTF8,
+		[Brand Name] COLLATE Latin1_General_100_CI_AS_WS_SC_UTF8,
+		--[Brand Name Lv2] COLLATE Latin1_General_100_CI_AS_WS_SC_UTF8,
+		Size COLLATE Latin1_General_100_CI_AS_WS_SC_UTF8,
+		Buyer_ID,
+		Customer_name,
+		Original_price,
+		Voucher_code,
+		Voucher_status,
+		Brand_voucher,
+		Brand_discount,
+		Platform_voucher,
+		Region,
+		[Estimated Platform Sponsors Shipping fee],
+		[Estimated Shipping Fee],
+		[Shipping Fee Buyer Pay],
+		Pageviews,
+		Visitor,
+		Buyer,
+		NULL as [conversion ID],
+		NULL as [Placement],
+		[Brand_freeship_Xtra_voucher],
+		Volume,
+		Weight,
+		promotion_id_order,
+		[Estimated Platform Sponsors Shipping fee (new)],
+		Visitor_sales,
+		source_data
+		from ord1
+		)
+select
+	Platform,
+	Date,
+	[Item Name],
+	--isnull([Brand Category], 'Other') as [Brand Category] ,
+	--isnull([Brand Name], 'Other') as [Brand Name] ,
+	--isnull([Brand Name lv2], 'Other') as [Brand Name lv2] ,
+	[Brand Category],
+	[Brand Name],
+	--[Brand Name lv2], --1/7/25: bỏ, không còn dùng đến
+	Product_ID,
+	Size,
+	[Standard name],
+	[conversion ID],
+		case 
+		when Ads_type= N'Quảng cáo Sản phẩm' and Placement in ('-', N'Tất cả', 'All') then 'Product Ad'
+		when Ads_type= N'Quảng cáo Sản phẩm' and Placement = N'Khám phá' then 'Product Discovery Ad'
+		when Ads_type= N'Quảng cáo Sản phẩm' and Placement = N'Tìm kiếm' then 'Product Search Ad'
+		when Ads_type= N'Quảng cáo Tìm Kiếm Sản Phẩm' then 'Product Search Ad'
+		when Ads_type= N'Quảng cáo Khám Phá Sản Phẩm' then 'Product Discovery Ad'
+		when Ads_type= N'Quảng cáo Shop' and Placement in ('-', N'Tất cả', 'All') then 'Shop Ad'
+		when Ads_type= N'Quảng cáo Shop' and Placement = N'Khám phá' then 'Shop Discovery Ad'
+		when Ads_type= N'Quảng cáo Shop' and Placement = N'Tìm kiếm' then 'Shop Search Ad'
+		when Ads_type= N'Quảng cáo Tìm Kiếm Shop' then 'Shop Search Ad'
+		when Ads_type= N'Quảng cáo Khám Phá Shop' then 'Shop Discovery Ad'	
+		when Ads_type= N'Quảng cáo Khám Phá' then 'Discovery Ads'
+		when Ads_type= N'Quảng cáo Kết Hợp' then 'Product Ad'		
+		else Ads_type
+		end as Ads_type, --phân loại theo y/c của khách
+	Clicks,
+	Reach,
+	Orders,
+	Expense,
+	GMV,
+	Impression,
+	[Items Sold],
+	Ads_category,
+	dat.TheYear ,
+	dat.TheMonth,
+	dat.TheMonthName,
+	dat.TheQuarter,
+	dat.WeekOfMonth,
+	dat.TheDay,
+	Paid_Total,
+	Pageviews,
+	Visitor,
+	Buyer,
+	Order_ID,
+	Buyer_ID,
+	Customer_name,
+	[Campaign name],
+	case when Platform in ('Shopee','ShopeeLive') and (TheMonth = '1' and TheDay between '1' and '5')
+								or (TheMonth ='2' and TheDay between '1' and '2')
+								or (TheMonth ='3' and TheDay between '1' and '3')
+								or (TheMonth ='4' and TheDay between '1' and '4')
+								or (TheMonth ='5' and TheDay between '1' and '5')
+								or (TheMonth ='6' and TheDay between '1' and '6')
+								or (TheMonth ='7' and TheDay between '2' and '7')
+								or (TheMonth ='8' and TheDay between '3' and '8')
+								or (TheMonth ='9' and TheDay between '4' and '9')
+								or (TheMonth ='10' and TheDay between '5' and '10')
+								or (TheMonth ='11' and TheDay between '6' and '11')
+								or (TheMonth ='12' and TheDay between '7' and '12')
+					then 'Double Digit' 
+			when Platform ='Lazada' and (TheMonth = '1' and TheDay between '1' and '5')
+								or (TheMonth ='2' and TheDay between '1' and '4')
+								or (TheMonth ='3' and TheDay between '3' and '5')
+								or (TheMonth ='4' and TheDay between '4' and '6')
+								or (TheMonth ='5' and TheDay between '5' and '7')
+								or (TheMonth ='6' and TheDay between '6' and '8')
+								or (TheMonth ='7' and TheDay between '7' and '9')
+								or (TheMonth ='8' and TheDay between '8' and '10')
+								or (TheMonth ='9' and TheDay between '9' and '10')
+								or (TheMonth ='10' and TheDay between '10' and '12')
+								or (TheMonth ='11' and TheDay between '11' and '12')
+								or (TheMonth ='12' and TheDay between '12' and '14')
+					then 'Double Digit' 
+			when Platform ='Tiki' and (TheMonth = '1' and TheDay between '1' and '5')
+								or (TheMonth ='2' and TheDay between '2' and '4')
+								or (TheMonth ='3' and TheDay between '3' and '5')
+								or (TheMonth ='4' and TheDay between '4' and '6')
+								or (TheMonth ='5' and TheDay between '5' and '7')
+								or (TheMonth ='6' and TheDay between '6' and '8')
+								or (TheMonth ='7' and TheDay between '7' and '9')
+								or (TheMonth ='8' and TheDay between '8' and '10')
+								or (TheMonth ='9' and TheDay between '9' and '11')
+								or (TheMonth ='10' and TheDay between '10' and '12')
+								or (TheMonth ='11' and TheDay between '11' and '13')
+								or (TheMonth ='12' and TheDay between '12' and '14')
+					then 'Double Digit' 
+			when Platform in ('Shopee','ShopeeLive') and TheDay between '12' and '15' then 'Mid-month'
+			when Platform in ('Lazada', 'Tiki') and TheDay between '15' and '17' then 'Mid-month'
+			when Platform in ('Shopee','ShopeeLive') and TheDay between '22' and '25' then 'Payday'
+			when Platform in ('Lazada', 'Tiki') and TheDay between '25' and '27' then 'Payday'
+			else 'BAU'
+	end as 'Campaign period' , --phân loại theo y/c của khách
+	Original_price,
+	Voucher_code,
+	Voucher_status,
+	Brand_voucher,
+	Brand_discount,
+	Platform_voucher,
+	ord_ad.Region,
+	[Estimated Platform Sponsors Shipping fee],
+	Status,
+	Add_to_cart,
+	[Estimated Shipping Fee],
+	[Shipping Fee Buyer Pay],
+	[Campaign Budget],
+	[Campaign Budget Type],
+	Starts,
+	Ends,
+	[Reporting starts],
+	[Reporting ends],
+	reg.[Sub Region],
+	[Placement],
+	[Brand_freeship_Xtra_voucher],
+	Volume,
+	Weight,
+	promotion_id_order,
+	[Estimated Platform Sponsors Shipping fee (new)],
+	Visitor_sales,
+	source_data
+from ord_ad
+left join v_DimRegion reg on ord_ad.Region = reg.[Province VN]
+left join v_DimDate dat on ord_ad.Date = dat.TheDate
