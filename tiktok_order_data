@@ -1,0 +1,69 @@
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Tiktok_Order_Details](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Order ID] [nvarchar](255) NULL,
+	[Order Status] [nvarchar](255) NULL,
+	[Order Substatus] [nvarchar](255) NULL,
+	[Cancelation/Return Type] [nvarchar](255) NULL,
+	[Normal or Pre-order] [nvarchar](255) NULL,
+	[SKU ID] [nvarchar](255) NULL,
+	[Seller SKU] [nvarchar](255) NULL,
+	[Product Name] [nvarchar](255) NULL,
+	[Variation] [nvarchar](255) NULL,
+	[Quantity] [nvarchar](255) NULL,
+	[Sku Quantity of return] [nvarchar](255) NULL,
+	[SKU Unit Original Price] [nvarchar](255) NULL,
+	[SKU Subtotal Before Discount] [nvarchar](255) NULL,
+	[SKU Platform Discount] [nvarchar](255) NULL,
+	[SKU Seller Discount] [nvarchar](255) NULL,
+	[SKU Subtotal After Discount] [nvarchar](255) NULL,
+	[Shipping Fee After Discount] [nvarchar](255) NULL,
+	[Original Shipping Fee] [nvarchar](255) NULL,
+	[Shipping Fee Seller Discount] [nvarchar](255) NULL,
+	[Shipping Fee Platform Discount] [nvarchar](255) NULL,
+	[Payment platform discount] [nvarchar](255) NULL,
+	[Taxes] [nvarchar](255) NULL,
+	[Order Amount] [nvarchar](255) NULL,
+	[Order Refund Amount] [nvarchar](255) NULL,
+	[Created Time] [nvarchar](255) NULL,
+	[Paid Time] [nvarchar](255) NULL,
+	[RTS Time] [nvarchar](255) NULL,
+	[Shipped Time] [nvarchar](255) NULL,
+	[Delivered Time] [nvarchar](255) NULL,
+	[Cancelled Time] [nvarchar](255) NULL,
+	[Cancel By] [nvarchar](255) NULL,
+	[Cancel Reason] [nvarchar](255) NULL,
+	[Fulfillment Type] [nvarchar](255) NULL,
+	[Warehouse Name] [nvarchar](255) NULL,
+	[Tracking ID] [nvarchar](255) NULL,
+	[Delivery Option] [nvarchar](255) NULL,
+	[Shipping Provider Name] [nvarchar](255) NULL,
+	[Buyer Message] [nvarchar](255) NULL,
+	[Buyer Username] [nvarchar](255) NULL,
+	[Recipient] [nvarchar](255) NULL,
+	[Phone #] [nvarchar](255) NULL,
+	[Country] [nvarchar](255) NULL,
+	[Province] [nvarchar](255) NULL,
+	[District] [nvarchar](255) NULL,
+	[Commune] [nvarchar](255) NULL,
+	[Detail Address] [nvarchar](255) NULL,
+	[Additional address information] [nvarchar](255) NULL,
+	[Payment Method] [nvarchar](255) NULL,
+	[Weight(kg)] [nvarchar](255) NULL,
+	[Product Category] [nvarchar](255) NULL,
+	[Package ID] [nvarchar](255) NULL,
+	[Seller Note] [nvarchar](255) NULL,
+	[Checked Status] [nvarchar](255) NULL,
+	[Checked Marked by] [nvarchar](255) NULL,
+	[FileName] [nvarchar](255) NULL,
+ CONSTRAINT [PK_Tiktok_Order_Details] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
