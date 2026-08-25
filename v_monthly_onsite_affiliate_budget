@@ -1,0 +1,44 @@
+---------- create a view from raw data <marketing budget of onsite and affiliate source by month on all platforms: Shopee, Lazada, Tiktok, Tiki>-------
+
+create view [cus].[v_monthly_onsite_affi_budget_byPlatform] as
+with tb as (
+		select
+		'Shopee onsite' as ads_source
+		,*
+		from cus.fn_unpivot_mkt_plan('Shopee onsite')
+		union all 
+		select
+		'Lazada onsite' as ads_source
+		,*
+		from cus.fn_unpivot_mkt_plan('Lazada onsite')
+		union all 
+		select
+		'TikTok onsite' as ads_source
+		,*
+		from cus.fn_unpivot_mkt_plan('TikTok onsite')
+		union all 
+		select
+		'Shopee affiliate' as ads_source
+		,*
+		from cus.fn_unpivot_mkt_plan('Shopee affiliate')
+		union all 
+		select
+		'Lazada affiliate' as ads_source
+		,*
+		from cus.fn_unpivot_mkt_plan('Lazada affiliate')
+		union all 
+		select
+		'TikTok affiliate' as ads_source
+		,*
+		from cus.fn_unpivot_mkt_plan('Tiktok affiliate')
+		)
+select
+Case when left(ads_source, charindex(' ', ads_source) - 1) = 'TikTok' then 'Tiktok' 
+	else left(ads_source, charindex(' ', ads_source) - 1) 
+	end
+as Platform
+,right(ads_source, len(ads_source)  - charindex(' ', ads_source)) as ads_source
+--,id
+,[Month] as month
+,Value as budget_spending
+from tb
