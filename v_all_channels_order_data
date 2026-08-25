@@ -1,0 +1,531 @@
+CREATE VIEW [cus].[v_Order_EC]
+AS
+WITH cte_order AS (
+	select 'S_'+ t1.[Mã đơn hàng] as Order_ID
+	,case when t1.[SKU sản phẩm] = '' then t1.[SKU phân loại hàng] else t1.[SKU sản phẩm] end as Product_SKU
+	,t1.[Tên sản phẩm] as Item_Name
+	,t1.[Trạng Thái Đơn Hàng] as [Status]
+	--,case 
+	--	when t1.[Trạng Thái Đơn Hàng] ='Unpaid' then 'Unpaid' 
+	--	when t1.[Trạng Thái Đơn Hàng] =N'Chờ xác nhận'  then N'Waiting for Confirmation' 
+	--	when t1.[Trạng Thái Đơn Hàng] ='packed' 
+	--		or t1.[Trạng Thái Đơn Hàng] = N'Chờ giao hàng' 
+	--		or t1.[Trạng Thái Đơn Hàng] ='ready_to_ship'  then N'In Progress' 
+	--	when t1.[Trạng Thái Đơn Hàng] =N'Đang giao' 
+	--		or t1.[Trạng Thái Đơn Hàng] ='delivery'
+	--		or t1.[Trạng Thái Đơn Hàng] =N'Đang vận chuyển'  
+	--		or t1.[Trạng Thái Đơn Hàng] = N'Đang xử lý' 
+	--		or t1.[Trạng Thái Đơn Hàng] =  N'pending' then N'Delivery' 
+ -- 		when t1.[Trạng Thái Đơn Hàng] =N'Giao hàng thành công' 
+	--		or ( t1.[Trạng Thái Đơn Hàng] =N'Hoàn thành' 
+	--		or t1.[Trạng Thái Đơn Hàng] ='shipped'
+	--		or t1.[Trạng Thái Đơn Hàng] ='delivered' 
+	--		or t1.[Trạng Thái Đơn Hàng] ='confirmed'  then 'Success' 
+	--	when t1.[Trạng Thái Đơn Hàng] ='canceled' 
+	--		or t1.[Trạng Thái Đơn Hàng] =N'Đã hủy' 
+	--		or t1.[Trạng Thái Đơn Hàng] =N'Hủy' 
+	--		or t1.[Trạng Thái Đơn Hàng] =N'Huỷ' 
+	--		or  t1.[Trạng Thái Đơn Hàng] ='Package Returned'
+	--		or  t1.[Trạng Thái Đơn Hàng] ='In Transit: Returning to seller'
+	--		or  t1.[Trạng Thái Đơn Hàng] ='Lost by 3PL'
+	--		or  t1.[Trạng Thái Đơn Hàng] ='returned'
+	--		or t1.[Trạng Thái Đơn Hàng] =N'Yêu cầu hủy đơn hàng'  then N'Canceled' 
+	--else N'' End as [Status EN]
+		,case
+		when t1.[Trạng thái Trả hàng/Hoàn tiền] in (N'Hoàn tất trả hàng', N'Đã Chấp Thuận Yêu Cầu') and t1.[Trạng Thái Đơn Hàng] like N'%' then N'Returned'
+		when t1.[Trạng Thái Đơn Hàng] =N'Unpaid' 
+			or t1.[Trạng Thái Đơn Hàng] =N'Chờ xác nhận'
+			or t1.[Trạng Thái Đơn Hàng] =N'packed' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Chờ giao hàng' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Đang xử lý' 
+			or t1.[Trạng Thái Đơn Hàng] =N'ready_to_ship' 
+			or t1.[Trạng Thái Đơn Hàng] =N'To ship' then N'Pending'
+		when t1.[Trạng Thái Đơn Hàng] =N'Đang giao' 
+			--or t1.[Trạng Thái Đơn Hàng] =N'delivery'
+			or t1.[Trạng Thái Đơn Hàng] =N'Đang vận chuyển'  
+			or t1.[Trạng Thái Đơn Hàng] =  N'shipped'
+			or t1.[Trạng Thái Đơn Hàng] =  N'Shipped'then N'Shipping' 
+  		when t1.[Trạng Thái Đơn Hàng] =N'Giao hàng thành công' 
+			or t1.[Trạng Thái Đơn Hàng] =N'Hoàn thành' 
+			--or ( t1.[Trạng Thái Đơn Hàng] =N'Hoàn thành' and t1.[Trạng thái Trả hàng/Hoàn tiền] not in ('Hoàn tất trả hàng', 'Đã Chấp Thuận Yêu Cầu'))
+			--or t1.[Trạng Thái Đơn Hàng] ='shipped'
+			or t1.[Trạng Thái Đơn Hàng] =N'delivered' 
+			or t1.[Trạng Thái Đơn Hàng] =N'confirmed'
+			or t1.[Trạng Thái Đơn Hàng] =N'completed' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Đã giao'
+			or t1.[Trạng Thái Đơn Hàng] like N'%Người mua xác nhận đã nhận được hàng, tuy nhiên%' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Đã nhận được hàng' and [Trạng thái Trả hàng/Hoàn tiền] = N'Yêu cầu chờ xử lý' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Đã nhận được hàng' then N'Completed' 
+		when t1.[Trạng Thái Đơn Hàng] = N'canceled' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Cancled' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Đã hủy' 
+			or t1.[Trạng Thái Đơn Hàng] = N'Huỷ' 
+			or  t1.[Trạng Thái Đơn Hàng] =N'Package Returned' -- khong lay dc hang tu seller
+			or  t1.[Trạng Thái Đơn Hàng] =N'In Transit: Returning to seller' -- khong giao duoc hang cho buyer
+			or  t1.[Trạng Thái Đơn Hàng] =N'Lost by 3PL'
+			or t1.[Trạng Thái Đơn Hàng] =N'Yêu cầu hủy đơn hàng'  then N'Canceled' 
+		when t1.[Trạng Thái Đơn Hàng] =N'returned' then N'Returned'
+	else N'' End as [Status EN]
+  --, case when  t1.[Trạng Thái Đơn Hàng] <> 'canceled' 
+		--and  t1.[Trạng Thái Đơn Hàng]  <> N'Đã hủy' 
+		--and  t1.[Trạng Thái Đơn Hàng]  <> N'Hủy' 
+		--and  t1.[Trạng Thái Đơn Hàng]  <> N'Huỷ' 
+		--and   t1.[Trạng Thái Đơn Hàng]  <> 'Package Returned'
+		--and   t1.[Trạng Thái Đơn Hàng]  <> 'In Transit: Returning to seller'
+		--and   t1.[Trạng Thái Đơn Hàng]  <> 'Lost by 3PL'
+		--and   t1.[Trạng Thái Đơn Hàng]  <> 'returned'
+		--and  t1.[Trạng Thái Đơn Hàng]  <> N'Yêu cầu hủy đơn hàng' then [Tổng giá bán (sản phẩm)] else NULL end as NVM
+	, t1.[Ngày đặt hàng] as Order_time
+	, Cast(t1.[Ngày đặt hàng] as date) as Order_date
+	,t1.[Thời gian giao hàng] as Delivery_time
+	,t1.[Phương thức thanh toán] as Payment_method
+	,cast(t1.[Số lượng] as int) as Quantity 
+	,t1.[Tổng giá bán (sản phẩm)] as Revenue
+	,cast( t1.[Mã giảm giá của Shop] as nvarchar(255) ) as Voucher_code
+	,t1.[Người Mua] as Customer_name
+	,t1.[Số điện thoại] as PhoneNumber
+	,t1.[Tỉnh/Thành phố] as [Tỉnh/Thành phố]
+	,cast(t1.[Người bán trợ giá] as float) as [Brand discount]  ---tổng discount theo SP (đã bao gồm tổng items)
+	--,t1.[Mã giảm giá của Shop]/Count(t1.[Mã giảm giá của Shop]) OVER(PARTITION BY [Mã đơn hàng]) as [Brand voucher]
+	--,t1.[Mã giảm giá của Shopee]/Count(t1.[Mã giảm giá của Shopee]) OVER(PARTITION BY [Mã đơn hàng]) as [Platform voucher]
+	,t1.[Mã giảm giá của Shop] * (t1.[Tổng giá bán (sản phẩm)] / ( SUM(t1.[Tổng giá bán (sản phẩm)]) OVER(PARTITION BY t1.[Mã đơn hàng] )))  as [Brand voucher] -- giá giảm trên từng SKU, phân chia theo tỷ lệ distribution từ Giá bán từng SP trong 1 Order
+	,t1.[Mã giảm giá của Shopee] * (t1.[Tổng giá bán (sản phẩm)] / ( SUM(t1.[Tổng giá bán (sản phẩm)]) OVER(PARTITION BY t1.[Mã đơn hàng] ))) as [Platform voucher]  -- giá giảm trên từng SKU, phân chia theo tỷ lệ distribution từ Giá bán từng SP trong 1 Order
+	, cast (t1.[Giá gốc] as float) as [Original Price]
+	, cast(t1.[Phí vận chuyển (dự kiến)] as float) * (t1.[Tổng giá bán (sản phẩm)] / ( SUM(t1.[Tổng giá bán (sản phẩm)]) OVER(PARTITION BY t1.[Mã đơn hàng] ))) as [Estimated Shipping Fee]
+	, cast (t1.[Phí vận chuyển mà người mua trả] as float) * (t1.[Tổng giá bán (sản phẩm)] / ( SUM(t1.[Tổng giá bán (sản phẩm)]) OVER(PARTITION BY t1.[Mã đơn hàng] ))) as [Shipping Fee Buyer Pay]
+	,cast (t1.[Phí vận chuyển tài trợ bởi Shopee (dự kiến)] as float) as [Estimated Platform Sponsors Shipping fee] --rule cũ: chưa chia theo sku
+	, cast (t1.[Phí vận chuyển tài trợ bởi Shopee (dự kiến)] as float) * (t1.[Tổng giá bán (sản phẩm)] / ( SUM(t1.[Tổng giá bán (sản phẩm)]) OVER(PARTITION BY t1.[Mã đơn hàng] ))) as [Estimated Platform Sponsors Shipping fee (new)] --rule mới: chia theo sku
+	,t1.FileName
+	,t1.[Mã giảm giá của Shop] AS brand_voucher_order --giá giảm trên Order
+	, t1.[Mã giảm giá của Shopee] AS platform_voucher_order
+	, SUM(t1.[Tổng giá bán (sản phẩm)]) OVER(PARTITION BY t1.[Mã đơn hàng] ) AS revenue_by_order
+	, SUM( cast (t1.[Giá gốc] as float))  OVER(PARTITION BY t1.[Mã đơn hàng]  ) as [original_price_by_order]
+	, cast([Phí dịch vụ] as float)/Count(cast([Phí dịch vụ] as float)) OVER(PARTITION BY [Mã đơn hàng]) as Brand_freeship_Xtra_voucher --chia đều phí cho các SP
+	, cast(t1.[Người bán trợ giá] as float) / cast(t1.[Số lượng] as int) as discount_by_sku
+    , coalesce ((case when [Số lượng sản phẩm được hoàn trả] is null then [Returned quantity] else [Số lượng sản phẩm được hoàn trả] end ), 0) as 'Returned quantity'
+	FROM 
+        Shopee_Order_Detail t1
+),
+
+cteorderpromotion AS (
+
+   SELECT od.*, 
+			(
+				SELECT top 1
+				  pp.[Promotion ID] + ';' +
+					--,
+					pp.[Event Name]
+				FROM 
+					Promotion_Plan pp 
+				WHERE  pp.Channel='Shopee' 
+					AND od.discount_by_sku = pp.Discount
+					AND od.Order_time >= pp.MinDate 
+					AND od.Order_time <  DATEADD(day, 1, pp.MaxDate)
+					AND od.Product_SKU IN (SELECT value FROM STRING_SPLIT(pp.[Applied SKU], ','))
+					and  od.Product_SKU NOT IN (SELECT value FROM STRING_SPLIT(pp.[Excepted SKU], ','))
+					AND ISNULL(pp.[Check Revenue] ,0)  !=1
+					order by pp.MinDate, pp.MaxDate
+			) as promotion_id_sku
+				,
+			(
+				SELECT top 1
+					 pp.[Promotion ID] + ';' +
+					--,
+					pp.[Event Name]
+				FROM 
+					Promotion_Plan pp 
+				WHERE  pp.Channel='Shopee' 
+					AND od.Order_time >=  pp.MinDate
+					AND od.Order_time <  DATEADD(day, 1, pp.MaxDate)
+					AND 
+					(
+						( pp.[Applied SKU] like N'Any%' 
+							and  od.Product_SKU NOT IN (SELECT value FROM STRING_SPLIT(pp.[Excepted SKU], ','))
+							)
+						or (od.Product_SKU IN (SELECT value FROM STRING_SPLIT(pp.[Applied SKU], ',')) 
+							and  od.Product_SKU NOT IN (SELECT value FROM STRING_SPLIT(pp.[Excepted SKU], ','))
+							)
+						)
+					AND  od.brand_voucher_order =pp.Discount 
+					AND  isnull(pp.[Check Revenue],0) =1 and od.revenue_by_order >= pp.[Normal price]
+					order by pp.MinDate, pp.MaxDate
+			) 
+			AS promotion_id_order
+    FROM 
+        cte_order od
+)
+
+SELECT
+	t1.Order_ID
+	,t1.Product_SKU
+	,t1.Item_Name
+	,t1.[Status]
+	--,t1.[Status EN]
+	, case when t1.[Returned quantity] <> 0 and t1.[Returned quantity] = t1.Quantity then 'Full Returned'
+		when t1.[Returned quantity] <>0 and t1.[Returned quantity] < t1.Quantity then 'Partial Returned'
+		else t1.[Status EN]
+	end as [Status EN] --tách Return status
+	--,t1.NVM
+	,t1.Order_time
+	,t1.Order_date
+	,t1. Delivery_time
+	,t1.Payment_method
+	,t1.Quantity 
+	,t1.[Returned quantity] --new
+	,t1.Revenue
+	,t1.Voucher_code
+	,t1.Customer_name
+	,t1.PhoneNumber
+	,t1.[Tỉnh/Thành phố]
+	,t1.[Brand discount] 
+	,t1.[Brand voucher] 
+	,t1.[Platform voucher]
+	,t1.[Original Price]
+	,t1.[Estimated Shipping Fee]
+	,t1.[Shipping Fee Buyer Pay]
+	,t1.[Estimated Platform Sponsors Shipping fee]
+	,t1.[Estimated Platform Sponsors Shipping fee (new)]
+	,t3.[Category]
+	,t3.[Brand Name]
+	,t3.[Size]
+	,t3.[Volume]
+	,t3.[Product Weight/g]
+	,LEFT(t1.promotion_id_sku, CHARINDEX(';', t1.promotion_id_sku) - 1) AS promotion_id_sku
+	,SUBSTRING(t1.promotion_id_sku, CHARINDEX(';', t1.promotion_id_sku) + 1, LEN(t1.promotion_id_sku) - CHARINDEX(';', t1.promotion_id_sku)) AS event_name_sku
+	,LEFT(t1.promotion_id_order, CHARINDEX(';', t1.promotion_id_order) - 1) AS promotion_id_order
+	,SUBSTRING(t1.promotion_id_order, CHARINDEX(';', t1.promotion_id_order) + 1, LEN(t1.promotion_id_order) - CHARINDEX(';', t1.promotion_id_order)) AS event_name_order
+	,ROUND(t1.brand_voucher_order, 0) as brand_voucher_order
+	,ROUND(t1.platform_voucher_order, 0) as platform_voucher_order
+	,t1.revenue_by_order
+	,t1.[original_price_by_order]
+	,ROUND(t1.brand_freeship_Xtra_voucher, 0) as Brand_freeship_Xtra_voucher
+	,t3.[Standard name]
+	, N'Shopee' as Channel
+	,t1.FileName
+FROM cteorderpromotion t1
+--left join [dbo].[Shopee_Performance_GroupBySKU] t2 on t1.[SKU sản phẩm] =t2.[SKU sản phẩm]
+--left join [dbo].[Shopee_SKU_Master] t3 on t1.Product_SKU =t3.[Product ID]
+LEFT JOIN cus.v_Master_SKU_Order t3 on t1.Product_SKU = t3.[Product SKU]
+
+UNION ALL
+
+SELECT
+	'L_'+  t1.[orderNumber] as Order_ID
+	--,LEFT(t1.[lazadaSku], CHARINDEX('_',t1.[lazadaSku]) -1) as Product_SKU
+	,t1.[sellerSku] as Product_SKU
+	,t1.itemName as Item_Name 
+	,t1.[status] as Status
+	--,case 
+	--	when t1.[status] ='Unpaid' then 'Unpaid' 
+	--	when t1.[status] =N'Chờ xác nhận'  then N'Waiting for Confirmation' 
+	--	when t1.[status] ='packed' 
+	--		or t1.[status] ='Chờ giao hàng' 
+	--		or t1.[status] ='ready_to_ship' 
+	--		or t1.[status] ='Chờ giao hàng'  
+	--		or t1.status = 'pending'   then N'In Progress'
+	--	when t1.[status] =N'Đang giao' 
+	--		or t1.[status] ='delivery'
+	--		or t1.[status] =N'Đang vận chuyển'  then N'Delivery' 
+ -- 		when t1.[status] =N'Giao hàng thành công' 
+	--		or t1.[status] =N'Hoàn thành' 
+	--		or t1.[status] ='shipped'
+	--		or t1.[status] ='delivered' 
+	--		or t1.[status] ='confirmed' then 'Success' 
+	--	when t1.[status] ='canceled' 
+	--		or t1.[status] =N'Đã hủy' 
+	--		or t1.[status] =N'Hủy' 
+	--		or t1.[status] =N'Huỷ' 
+	--		or  t1.[status] ='Package Returned'
+	--		or  t1.[status] ='In Transit: Returning to seller'
+	--		or  t1.[status] ='Lost by 3PL'
+	--		or  t1.[status] ='returned'
+	--		or t1.[status] =N'Yêu cầu hủy đơn hàng'  then N'Canceled' 
+	--	else N'' End as [Status EN]
+			,case 
+		when t1.[status] =N'Unpaid' 
+			or t1.[status] =N'Chờ xác nhận'
+			or t1.[status] =N'packed' 
+			or t1.[status] = N'Chờ giao hàng' 
+			or t1.[status] = N'Đang xử lý' 
+			or t1.[status] =N'ready_to_ship' 
+			or t1.[status] =N'To ship' then N'Pending'
+		when t1.[status] =N'Đang giao' 
+			--or t1.[Trạng Thái Đơn Hàng] =N'delivery'
+			or t1.[status] =N'Đang vận chuyển'  
+			or t1.[status] =  N'shipped'
+			or t1.[status] =  N'Shipped'then N'Shipping' 
+  		when t1.[status] =N'Giao hàng thành công' 
+			or t1.[status] =N'Hoàn thành' 
+			--or t1.[Trạng Thái Đơn Hàng] ='shipped'
+			or t1.[status] =N'delivered' 
+			or t1.[status] =N'confirmed'
+			or t1.[status] =N'completed' then N'Completed' 
+		when t1.[status] = N'canceled' 
+			or t1.[status] = N'Cancled' 
+			or t1.[status] = N'Đã hủy' 
+			or t1.[status] = N'Huỷ' 
+			or  t1.[status] =N'Package Returned' -- khong lay dc hang tu seller
+			or  t1.[status] =N'In Transit: Returning to seller' -- khong giao duoc hang cho buyer
+			or  t1.[status] =N'Lost by 3PL'
+			or t1.[status] =N'Yêu cầu hủy đơn hàng'  then N'Canceled' 
+		when t1.[status] =N'returned'
+			or t1.[status] = N'Hoàn thành' 
+			or t1.[status] in ('Hoàn tất trả hàng', 'Đã Chấp Thuận Yêu Cầu') then N'Returned'
+	else N'' End as [Status EN]
+  --  , case when  t1.[status] <> 'canceled' 
+		--	and  t1.[status]  <> N'Đã hủy' 
+		--	and  t1.[status]  <> N'Hủy' 
+		--	and  t1.[status]  <> N'Huỷ' 
+		--	and   t1.[status]  <> 'Package Returned'
+		--	and   t1.[status]  <> 'In Transit: Returning to seller'
+		--	and   t1.[status]  <> 'Lost by 3PL'
+		--	and   t1.[status]  <> 'returned'
+		--	and  t1.[status]  <> N'Yêu cầu hủy đơn hàng' then SUm([paidPrice]) 
+		--else NULL end as NVM
+	, t1.[createTime] as Order_time
+	, Cast(t1.createTime as Date) as Order_date
+	,t1.[deliveredDate] as Delivery_time
+	,t1.[payMethod] as Payment_method
+	,Count(1) as Quantity 
+	,null as [Returned quantity]
+	,SUM(t1.[paidPrice]) as Revenue
+	,null as Voucher_code
+	,t1.[customerName] as Customer_name
+	,t1.[billingPhone] as PhoneNumber
+	,null as [Tỉnh/Thành phố]
+	,null as [Brand discount] 
+	,ABS( SUM(t1.sellerDiscountTotal)) as [Brand voucher]
+	,null as [Platform voucher]
+	, AVG(cast (t1.unitPrice as float)) as [Original Price]
+	, sum(cast(shippingFee as float)) as [Estimated Shipping Fee]
+	, null as [Shipping Fee Buyer Pay]
+	, null as [Estimated Platform Sponsors Shipping fee]
+	, null as [Estimated Platform Sponsors Shipping fee (new)]
+	,t3.[Category]
+	,t3.[Brand Name]
+	,t3.[Size]
+	,t3.[Volume]
+	,t3.[Product Weight/g]
+	,'' as promotion_id_sku
+	,'' as event_name_sku
+	,'' as promotion_id_order
+	,'' as event_name_order
+	,null as brand_voucher_order
+	,null as platform_voucher_order
+	,null as revenue_by_order
+	,null as [original_price_by_order]
+	,null as brand_freeship_Xtra_voucher
+	,t3.[Standard name]
+	, N'Lazada' as Channel
+	,t1.FileName
+FROM [dbo].[Lazada_Order_Detail] t1
+    --left join [dbo].[Lazada_SKU_Master] t3 on LEFT(t1.[lazadaSku], CHARINDEX('_',t1.[lazadaSku]) -1)   =t3.[Product ID]
+--LEFT JOIN [cus].[v_Master_SKU_Order] t3 on LEFT(t1.[lazadaSku], CHARINDEX('_',t1.[lazadaSku]) -1) = t3.[Product SKU]
+LEFT JOIN [cus].[v_Master_SKU_Order] t3 on t1. [sellerSku] = t3.[Product SKU]
+GROUP BY t1.[orderNumber],t1.[sellerSku],t1.itemName,t1.[status], t1.[createTime],t1.[deliveredDate],t1.[payMethod],t1.[customerName],t1.[billingPhone],t3.[Category],t3.[Brand Name],t3.[Size],t1.FileName,t3.[Standard name], t3.Volume, T3.[Product Weight/g]
+	
+UNION ALL
+	
+SELECT 
+	'T_'+ t1.[Mã đơn hàng] as Order_ID
+	--,t1.[SSKU] as Product_SKU
+	,t1.[Mã sản phẩm] as Product_SKU
+	,t1.[Tên sản phẩm] as Item_Name
+	,t1.[Trạng thái] as Status
+	--,case 
+	--	when t1.[Trạng thái] ='Unpaid' then 'Unpaid' 
+	--	when t1.[Trạng thái] =N'Chờ xác nhận'  then N'Waiting for Confirmation' 
+	--	when t1.[Trạng thái] ='packed' 
+	--		or t1.[Trạng thái] ='Chờ giao hàng' 
+	--		or t1.[Trạng thái] ='ready_to_ship' 
+	--		or t1.[Trạng thái] ='Chờ giao hàng'  
+	--		or t1.[Trạng thái]= N'Đang xử lý' then N'In Progress' 
+	--	when t1.[Trạng thái] =N'Đang giao' 
+	--		or t1.[Trạng thái] ='delivery'
+	--		or t1.[Trạng thái] =N'Đang vận chuyển'  then N'Delivery' 
+ -- 		when t1.[Trạng thái] =N'Giao hàng thành công' 
+	--		or t1.[Trạng thái] =N'Hoàn thành' 
+	--		or t1.[Trạng thái] ='shipped'
+	--		or t1.[Trạng thái] ='delivered' 
+	--		or t1.[Trạng thái] ='confirmed' then 'Success' 
+	--	when t1.[Trạng thái] = N'canceled' 
+	--		or t1.[Trạng thái] =N'Đã hủy' 
+	--		or t1.[Trạng thái] =N'Hủy' 
+	--		or t1.[Trạng thái] =N'Huỷ' 
+	--		or  t1.[Trạng thái] ='Package Returned'
+	--		or  t1.[Trạng thái] ='In Transit: Returning to seller'
+	--		or  t1.[Trạng thái] ='Lost by 3PL'
+	--		or  t1.[Trạng thái] ='returned'
+	--		or t1.[Trạng thái] =N'Yêu cầu hủy đơn hàng'  then N'Canceled' 
+	--	else N'' End as [Status EN]
+			,case 
+		when t1.[Trạng thái] ='Unpaid' 
+			or t1.[Trạng thái] =N'Chờ xác nhận'
+			or t1.[Trạng thái] =N'packed' 
+			or t1.[Trạng thái] = N'Chờ giao hàng' 
+			or t1.[Trạng thái] = N'Đang xử lý' 
+			or t1.[Trạng thái] =N'ready_to_ship' 
+			or t1.[Trạng thái] =N'To ship' then N'Pending'
+		when t1.[Trạng thái] =N'Đang giao' 
+			--or t1.[Trạng Thái Đơn Hàng] =N'delivery'
+			or t1.[Trạng thái] =N'Đang vận chuyển'  
+			or t1.[Trạng thái] =  N'shipped'
+			or t1.[Trạng thái] =  N'Shipped'then N'Shipping' 
+  		when t1.[Trạng thái] =N'Giao hàng thành công' 
+			or  t1.[Trạng thái] =N'Hoàn thành' 
+			--or t1.[Trạng Thái Đơn Hàng] ='shipped'
+			or t1.[Trạng thái] =N'delivered' 
+			or t1.[Trạng thái] =N'confirmed'
+			or t1.[Trạng thái] =N'completed' then N'Completed' 
+		when t1.[Trạng thái] = N'canceled' 
+			or t1.[Trạng thái] = N'Cancled' 
+			or t1.[Trạng thái] = N'Đã hủy' 
+			or t1.[Trạng thái] = N'Huỷ' 
+			or  t1.[Trạng thái] =N'Package Returned' -- khong lay dc hang tu seller
+			or  t1.[Trạng thái] =N'In Transit: Returning to seller' -- khong giao duoc hang cho buyer
+			or  t1.[Trạng thái] =N'Lost by 3PL'
+			or t1.[Trạng thái] =N'Yêu cầu hủy đơn hàng'  then N'Canceled' 
+		when t1.[Trạng thái] =N'returned'
+			or t1.[Trạng thái] = N'Hoàn thành' 
+			or t1.[Trạng thái] in ('Hoàn tất trả hàng', 'Đã Chấp Thuận Yêu Cầu') then N'Returned'
+	else N'' End as [Status EN]
+  -- , case 
+		--when  t1.[Trạng thái] <> 'canceled' 
+		--	and  t1.[Trạng thái]  <> N'Đã hủy' 
+		--	and  t1.[Trạng thái]  <> N'Hủy' 
+		--	and  t1.[Trạng thái]  <> N'Huỷ' 
+		--	and   t1.[Trạng thái]  <> 'Package Returned'
+		--	and   t1.[Trạng thái]  <> 'In Transit: Returning to seller'
+		--	and   t1.[Trạng thái]  <> 'Lost by 3PL'
+		--	and   t1.[Trạng thái]  <> 'returned'
+		--	and  t1.[Trạng thái]  <> N'Yêu cầu hủy đơn hàng' then [Số tiền phải thu (tổng đơn hàng)] 
+		--else NULL end as NVM
+	, t1.[Ngày đặt] as Order_time
+	, Cast(t1.[Ngày đặt] as Date) as Order_date
+	,t1.[Ngày giao hàng thành công] as Delivery_time
+	,t1.[Phương thức thanh toán] as Payment_method
+	,t1.[SL bán] as Quantity 
+	,null as [Returned quantity]
+	,t1.[Thành tiền] as Revenue
+	,t1.[Mã Coupon Nhà Bán] as Voucher_code
+	,null as Customer_name
+	,null as PhoneNumber
+	,null as [Tỉnh/Thành phố]
+	,null as [Brand discount] 
+	,null as [Brand voucher]
+	,null as [Platform voucher]
+	, Cast(t1.[Đơn giá] as float) as [Original Price]
+	, cast(t1.[Phí vận chuyển gốc] as float) as [Estimated Shipping Fee]
+	, null as [Shipping Fee Buyer Pay]
+	, cast([Tiki giảm giá phí vận chuyển] as float) as [Estimated Platform Sponsors Shipping fee]
+	, cast([Tiki giảm giá phí vận chuyển] as float) as [Estimated Platform Sponsors Shipping fee (new)]
+	,t3.[Category]
+	,t3.[Brand Name]
+	,t3.[Size]
+	,t3.[Volume]
+	,t3.[Product Weight/g]
+	,'' as promotion_id_sku
+	,'' as event_name_sku
+	,'' as promotion_id_order
+	,'' as event_name_order
+	,null as brand_voucher_order
+	,null as platform_voucher_order
+	,null as revenue_by_order
+	,null as [original_price_by_order]
+	,null as Brand_freeship_Xtra_voucher
+	,t3.[Standard name]
+	, N'Tiki' as Channel
+	,t1.FileName
+FROM [dbo].[Tiki_Order_Detail] t1
+LEFT JOIN [cus].[v_Master_SKU_Order] t3 on t1.[Mã sản phẩm] =t3.[Product SKU]
+
+UNION ALL
+
+SELECT 
+	'TT_'+ t1.[Order ID] as Order_ID
+	,t1.[Seller SKU] as Product_SKU
+	,t1.[Product Name] as Item_Name
+	,t1.[Order Status] as Status
+	--,t1.[Order Status] as [Status EN]
+				,case 
+		when t1.[Order Status] =N'returned'
+			or t1.[Order Status] = N'Hoàn thành' 
+			or t1.[Order Status] in ('Hoàn tất trả hàng', 'Đã Chấp Thuận Yêu Cầu')
+			or t1.[Order Status] = N'Completed' and [Cancelation/Return Type]= N'Return/Refund' then N'Returned' --> thêm case cột Cancelation/Return Type = ....
+		when t1.[Order Status] =N'Unpaid' 
+			or t1.[Order Status] =N'Chờ xác nhận'
+			or t1.[Order Status] =N'packed' 
+			or t1.[Order Status] = N'Chờ giao hàng' 
+			or t1.[Order Status] = N'Đang xử lý' 
+			or t1.[Order Status] =N'ready_to_ship' 
+			or t1.[Order Status] =N'To ship' then N'Pending'
+		when t1.[Order Status] =N'Đang giao' 
+			or t1.[Order Status] =N'Đang vận chuyển'  
+			or t1.[Order Status] =  N'shipped'
+			or t1.[Order Status] =  N'Shipped'then N'Shipping' 
+  		when t1.[Order Status] =N'Giao hàng thành công' 
+			or  t1.[Order Status] =N'Hoàn thành' 
+			or t1.[Order Status] =N'delivered' 
+			or t1.[Order Status] =N'confirmed'
+			or t1.[Order Status] =N'completed' then N'Completed' 
+		when t1.[Order Status] = N'canceled' 
+			or t1.[Order Status] = N'Cancled' 
+			or t1.[Order Status] = N'Đã hủy' 
+			or t1.[Order Status] = N'Huỷ' 
+			or  t1.[Order Status] =N'Package Returned' -- khong lay dc hang tu seller
+			or  t1.[Order Status] =N'In Transit: Returning to seller' -- khong giao duoc hang cho buyer
+			or  t1.[Order Status] =N'Lost by 3PL'
+			or t1.[Order Status] =N'Yêu cầu hủy đơn hàng'  then N'Canceled' 
+	else N'' End as [Status EN]
+	--, case when t1.[Order Status] <> 'Canceled' then Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.','')) else NULL end as NVM
+	,cast( DATEFROMPARTS(
+				try_cast(SUBSTRING([Created Time],7,4) as int ), 
+				try_cast(SUBSTRING([Created Time],4,2) as int), 
+				try_cast(SUBSTRING([Created Time],1,2) as int) 
+				)
+			as datetime) as Order_time
+	,DATEFROMPARTS(
+		try_cast(SUBSTRING([Created Time],7,4) as int ), 
+		try_cast(SUBSTRING([Created Time],4,2) as int), 
+		try_cast(SUBSTRING([Created Time],1,2) as int) 
+		) as Order_date
+	,try_cast(t1.[Delivered Time] as datetime) as Delivery_time
+	,t1.[Payment Method] as Payment_method
+	,try_cast(t1.Quantity as float) as Quantity 
+	,null as [Returned quantity]
+	,Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.','')) as Revenue
+	,NULL as Voucher_code
+	,[Buyer Username] as Customer_name
+	,[Phone #] as PhoneNumber
+	,Province as [Tỉnh/Thành phố]
+	--,Try_convert(float, REPLACE(REPLACE(t1.[SKU Seller Discount], ' VND', ''), '.','')) as [Brand discount]
+	,null as [Brand discount] 
+	,null as [Brand voucher]
+	,Try_convert(float, REPLACE(REPLACE(t1.[SKU Platform Discount], ' VND', ''), '.',''))  as [Platform voucher]
+	,Try_convert(float, REPLACE(REPLACE(t1.[SKU Unit Original Price], ' VND', ''), '.',''))  as [Original Price]
+	,Try_convert(float, REPLACE(REPLACE(t1.[Original Shipping Fee], ' VND', ''), '.',''))  * (Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.',''))  / SUM(Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.','')) ) OVER (PARTITION BY t1.[Order ID]))  as [Estimated Shipping Fee]
+	,Try_convert(float, REPLACE(REPLACE(t1.[Shipping Fee After Discount], ' VND', ''), '.','')) * (Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.',''))  / SUM(Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.','')) ) OVER (PARTITION BY t1.[Order ID]))  as [Shipping Fee Buyer Pay]
+	,Try_convert(float, REPLACE(REPLACE(t1.[Shipping Fee Platform Discount], ' VND', ''), '.',''))  as [Estimated Platform Sponsors Shipping fee] --tính theo đơn hàng
+	,Try_convert(float, REPLACE(REPLACE(t1.[Shipping Fee Platform Discount], ' VND', ''), '.','')) * (Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.',''))  / SUM(Try_convert(float, REPLACE(REPLACE(t1.[SKU Subtotal After Discount], ' VND', ''), '.','')) ) OVER (PARTITION BY t1.[Order ID])) as [Estimated Platform Sponsors Shipping fee (new)] --rule mới: chia theo %contribution revenue của SP trong 1 đơn hàng
+	,t3.[Category]
+	,t3.[Brand Name]
+	,t3.[Size]
+	,t3.[Volume]
+	,t3.[Product Weight/g]
+	,'' as promotion_id_sku
+	,'' as event_name_sku
+	,'' as promotion_id_order
+	,'' as event_name_order
+	,null as brand_voucher_order
+	,null as platform_voucher_order
+	,null as revenue_by_order
+	,null as [original_price_by_order]
+	,null as Brand_freeship_Xtra_voucher
+	,t3.[Standard name]
+	, N'Tiktok' as Channel
+	,t1.FileName
+FROM [dbo].[Tiktok_Order_Details] t1
+LEFT JOIN [cus].[v_Master_SKU_Order] t3 on t1.[Seller SKU] =t3.[Product SKU]
+where [Order Status] <> 'Current order status.'
+
+GO
